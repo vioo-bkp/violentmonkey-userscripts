@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Dynamic-HTML5-Video-Control
+// @name         dynamic-html5-video-control
 // @namespace    Violentmonkey Scripts
 // @description  Video control for HTML5 videos on all websites.
 // @version      1.8.2
