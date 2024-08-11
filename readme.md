@@ -1,5 +1,3 @@
-# Script that I use for my browser
-
 ## Get Started
 
 To use this script, follow these steps:
