@@ -11,6 +11,7 @@
 (function() {
     'use strict';
     // change FONT_NAME to your preferable font to use
+    // make sure you have the specific font installed on your OS
     const FONT_NAME = 'MiSans Latin';
     document.body.style.fontFamily = FONT_NAME;
 
