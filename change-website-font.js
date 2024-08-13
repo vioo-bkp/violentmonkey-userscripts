@@ -2,7 +2,7 @@
 // @name         change-website-font
 // @namespace    http://tampermonkey.net/
 // @description  Changes the font of webpages to desired font
-// @version      1.1
+// @version      1.1.1
 // @author       vioo-bkp
 // @match        *://*/*
 // @grant        none
@@ -15,16 +15,24 @@
 
     // configuration
     const PREFERRED_FONT = 'MiSans Latin';
-    const EXCLUDED_SELECTORS = ['pre', 'code', '.code', '[class*="code-"]'];
+    const EXCLUDED_SELECTORS = [
+        'pre',
+        'code',
+        '.code',
+        '[class*="code-"]', 
+        '[class*="material-symbols-outlined"]',
+        '[class*="material-icons"]', // common class for Google Material Icons
+        '[class*="icon-"]',
+    ];
 
     // function to apply font to an element and its children
     function applyFontToElement(element) {
         if (EXCLUDED_SELECTORS.some(selector => element.matches(selector))) {
             return; // Skip excluded elements
         }
-        
+
         element.style.setProperty('font-family', `${PREFERRED_FONT}`, 'important');
-        
+
         for (let child of element.children) {
             applyFontToElement(child);
         }
