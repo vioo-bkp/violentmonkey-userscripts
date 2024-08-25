@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         change-website-font
 // @namespace    http://tampermonkey.net/
-// @description  Changes the font of webpages to desired font
-// @version      1.1.1
+// @description  Changes the font of webpages to desired font while preserving icons
+// @version      1.2.0
 // @author       vioo-bkp
 // @match        *://*/*
 // @grant        none
@@ -10,28 +10,37 @@
 
 (function() {
     'use strict';
-    // change FONT_NAME to your preferable font to use
-    // make sure you have the specific font installed on your OS
 
-    // configuration
-    const PREFERRED_FONT = 'MiSans Latin';
+    // Configuration
+    const PREFERRED_FONT = 'MiSans Latin, sans-serif';
     const EXCLUDED_SELECTORS = [
         'pre',
         'code',
         '.code',
-        '[class*="code-"]', 
+        '[class*="code-"]',
         '[class*="material-symbols-outlined"]',
-        '[class*="material-icons"]', // common class for Google Material Icons
+        '[class*="material-icons"]',
         '[class*="icon-"]',
+        'i[class*="fa-"]', // Font Awesome icons
+        'span[class*="glyphicon"]', // Bootstrap glyphicons
+        '[class*="icomoon"]', // IcoMoon icons
+        '[data-icon]', // General attribute for icons
     ];
 
-    // function to apply font to an element and its children
-    function applyFontToElement(element) {
-        if (EXCLUDED_SELECTORS.some(selector => element.matches(selector))) {
-            return; // Skip excluded elements
-        }
+    function shouldExclude(element) {
+        return EXCLUDED_SELECTORS.some(selector => element.matches(selector));
+    }
 
-        element.style.setProperty('font-family', `${PREFERRED_FONT}`, 'important');
+    function applyFontToElement(element) {
+        if (shouldExclude(element)) return;
+
+        const computedStyle = window.getComputedStyle(element);
+        const currentFontFamily = computedStyle.getPropertyValue('font-family');
+
+        // Check if the current font is likely an icon font
+        if (!currentFontFamily.includes('icon') && !currentFontFamily.includes('awesome')) {
+            element.style.setProperty('font-family', `${PREFERRED_FONT}, ${currentFontFamily}`, 'important');
+        }
 
         for (let child of element.children) {
             applyFontToElement(child);
@@ -54,7 +63,5 @@
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Log script activation
-    // console.log('Font change script activated');
-
+    console.log('Improved Font Changer script activated');
 })();
