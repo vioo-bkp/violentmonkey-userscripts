@@ -2,7 +2,7 @@
 // @name         dynamic-html5-video-control
 // @namespace    Violentmonkey Scripts
 // @description  Video control for HTML5 videos on all websites.
-// @version      1.8.2
+// @version      1.9.0
 // @author       vioo-bkp
 // @match        *://*/*
 // @grant        none
@@ -33,19 +33,27 @@
     // Create and style the display container
     const displayContainer = document.createElement('div');
     Object.assign(displayContainer.style, {
-        position: 'absolute',
+        position: 'fixed',
         top: '10px',
         left: '10px',
-        zIndex: '9999',
+        zIndex: '9999999',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        color: 'white',
+        padding: '10px',
+        borderRadius: '5px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
         pointerEvents: 'none',
         transition: 'opacity 0.5s ease-in-out',
+        opacity: '0',
     });
-    displayContainer.classList.add('video-control-overlay');
+    document.body.appendChild(displayContainer);
 
     function updateDisplay() {
         displayContainer.innerHTML = `
-            <span style="color: aquamarine;">Speed: ${videoSpeed.toFixed(2)}</span><br>
-            <span style="color: lightcoral;">Saturation: ${videoSaturation.toFixed(2)}</span>
+            <div style="color: aquamarine;">Speed: ${videoSpeed.toFixed(2)}</div>
+            <div style="color: lightcoral;">Saturation: ${videoSaturation.toFixed(2)}</div>
+            <div style="color: lightyellow;">Dynamic Acceleration: ${dynamicAcceleration.enable ? 'ON' : 'OFF'}</div>
         `;
 
         displayContainer.style.opacity = '1';
@@ -88,6 +96,7 @@
             case "`":
                 newRate = 1;
                 videoSaturation = 1;
+                dynamicAcceleration.enable = false;
                 break;
             default:
                 return;
@@ -119,34 +128,35 @@
     }
 
     document.addEventListener("keydown", handlePressedKey);
-    document.addEventListener("play", (event) => {
-        if (event.target.tagName === 'VIDEO') {
-            const video = event.target;
-            const parent = video.parentElement;
-            if (!parent) return;
-
-            parent.appendChild(displayContainer);
-
-            Object.assign(displayContainer.style, {
-                position: 'absolute',
-                top: '10px',
-                left: '10px',
-                margin: '10px',
-            });
-
-            dynamicAcceleration.startingSpeed = video.playbackRate;
-            dynamicAcceleration.enable = false;
-
-            updateDisplay();
-
-            const animationFrame = () => {
-                if (!video.paused && !video.ended) {
-                    updateDynamicAcceleration(video);
-                    requestAnimationFrame(animationFrame);
-                }
-            };
-            requestAnimationFrame(animationFrame);
+    
+    // Monitor all video elements
+    const observeVideos = () => {
+        const videos = document.getElementsByTagName('video');
+        for (let video of videos) {
+            if (!video.dataset.controlsAttached) {
+                video.dataset.controlsAttached = 'true';
+                video.addEventListener('play', () => {
+                    dynamicAcceleration.startingSpeed = video.playbackRate;
+                    dynamicAcceleration.enable = false;
+                    updateDisplay();
+                });
+                
+                const animationFrame = () => {
+                    if (!video.paused && !video.ended) {
+                        updateDynamicAcceleration(video);
+                        requestAnimationFrame(animationFrame);
+                    }
+                };
+                requestAnimationFrame(animationFrame);
+            }
         }
-    }, true);
+    };
+
+    // Observe DOM changes to catch dynamically added videos
+    const observer = new MutationObserver(observeVideos);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Initial call to handle videos present on page load
+    observeVideos();
 
 })();
